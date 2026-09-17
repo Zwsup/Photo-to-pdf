@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline Photo to PDF</title>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=BnSDn3ZDt9cmFgrJj9AeI-YKEx-tl3NKalUjKFjhqZHTvGUeN7qH6UwQpTBxeNdO3_OK_CagJJLs6f8pU43WEr-Xf-UniveXrW9a6MyMIcVu93XYyY2ikJGq9RLHU2DzLfjRQjJ-z1xjKwS6f15dMh2Laq6rcGmFn33RGcqrn31g6Ve4I1GZh-mb97txPwXSnA50N3eJkKWjHOhg20apd-Jef5KPzwTQf50eGMkzYZuL2KbnwGyx0ExD_DpYjysILTet0chuptfMPTKoM-RR1w" charset="UTF-8"></script><script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=yS0Wdg0iSc9dJJH7GhrXlyz4YgxroDERa-Tfjk09cGd3KlZYD36iHtT0Q2wCmryBT6QGcTvGwjjRGuMsmR4GbuHWFHoJ0O50wDS8u411XDa6Fy5tTnxbnBg99DKmC6iYRZV1zIi_MBJ_4NWTeMOfb1_p_Bb2FZQyNssVAVV36pJHVQlGbgoupEBOVRvnA_znc0doRpIE406I0gFhEeumVhHR7BHJvZNmgkB1M93EP4Gg-g6RL4-i8HbKbBTx4KhFl6x-ANABxWPyU4HtBsqSX9N_9-4KvyKg-3bNPrYZAXTZ4MRMDYkLpvmrhwfiGjfSJ1n9cWdRQOjMx9z4OJV5qA" charset="UTF-8"></script><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;color:#1f2937}
+header{background:#111827;color:#fff;padding:22px;text-align:center}
+header h1{margin:0 0 6px;font-size:25px}
+header p{margin:0;color:#d1d5db;font-size:14px}
+.container{max-width:1100px;margin:25px auto;padding:0 18px}
+.panel{background:#fff;border-radius:14px;padding:20px;box-shadow:0 4px 18px rgba(0,0,0,.08);margin-bottom:20px}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+label{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;background:#fff}
+input[type=file]{width:100%}
+.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button{border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer}
+.primary{background:#111827;color:#fff}
+.secondary{background:#e5e7eb;color:#111827}
+.danger{background:#fee2e2;color:#991b1b}
+.hint{font-size:13px;color:#6b7280;margin-top:10px}
+#pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.page-wrap{display:flex;flex-direction:column;align-items:center}
+.page-label{font-weight:700;margin-bottom:8px}
+.page{background:#fff;width:100%;aspect-ratio:210/297;box-shadow:0 3px 14px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.page img{position:absolute;max-width:100%;max-height:100%;object-fit:contain}
+.empty{height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;border:2px dashed #d1d5db;border-radius:10px}
+.status{margin-top:10px;font-size:13px;color:#374151}
+@media(max-width:750px){.controls{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>Offline Photo → PDF</h1>
+<p>Fotoğraflarınız bilgisayarınızdan çıkmaz. Sunucuya yükleme yapılmaz.</p>
+</header>
+
+<div class="container">
+<div class="panel">
+<label for="files">Fotoğrafları seçin (en fazla 100)</label>
+<input id="files" type="file" accept="image/*" multiple>
+
+<div class="controls" style="margin-top:16px">
+<div>
+<label for="orientation">Sayfa yönü</label>
+<select id="orientation">
+<option value="portrait">Dikey (A4)</option>
+<option value="landscape">Yatay (A4)</option>
+</select>
+</div>
+<div>
+<label for="margin">Kenar boşluğu (mm)</label>
+<input id="margin" type="number" min="0" max="30" value="10">
+</div>
+<div>
+<label for="fit">Fotoğraf yerleşimi</label>
+<select id="fit">
+<option value="contain">Tamamını sığdır</option>
+<option value="cover">Sayfayı doldur</option>
+</select>
+</div>
+<div>
+<label for="quality">JPEG kalitesi</label>
+<select id="quality">
+<option value="0.95">Yüksek</option>
+<option value="0.85" selected>Normal</option>
+<option value="0.70">Küçük dosya</option>
+</select>
+</div>
+</div>
+
+<div class="buttons">
+<button class="primary" id="pdfBtn">PDF Oluştur / Yazdır</button>
+<button class="secondary" id="printBtn">Yazdır</button>
+<button class="danger" id="clearBtn">Temizle</button>
+</div>
+<div class="hint">10 fotoğraf seçerseniz 1. fotoğraf 1. sayfaya, 2. fotoğraf 2. sayfaya yerleştirilir. PDF oluşturma işlemi tarayıcının kendi “PDF olarak kaydet” özelliğiyle yapılır.</div>
+<div id="status" class="status"></div>
+</div>
+
+<div class="panel">
+<h3 style="margin-top:0">Önizleme</h3>
+<div id="pages">
+<div class="empty">Henüz fotoğraf seçilmedi.</div>
+</div>
+</div>
+</div>
+
+<script>
+const filesEl=document.getElementById('files');
+const orientationEl=document.getElementById('orientation');
+const marginEl=document.getElementById('margin');
+const fitEl=document.getElementById('fit');
+const qualityEl=document.getElementById('quality');
+const pagesEl=document.getElementById('pages');
+const statusEl=document.getElementById('status');
+
+let images=[];
+
+filesEl.addEventListener('change',()=>{
+  const files=[...filesEl.files].filter(f=>f.type.startsWith('image/')).slice(0,100);
+  if(files.length===0){images=[]; render(); return;}
+  if(filesEl.files.length>100) statusEl.textContent='En fazla 100 fotoğraf kullanılabilir. İlk 100 fotoğraf alındı.';
+  Promise.all(files.map(file=>new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>resolve({img,url,name:file.name});
+    img.onerror=reject;
+    img.src=url;
+  }))).then(result=>{images=result;render();});
+});
+
+[orientationEl,marginEl,fitEl,qualityEl].forEach(el=>el.addEventListener('input',render));
+
+function render(){
+  pagesEl.innerHTML='';
+  if(!images.length){
+    pagesEl.innerHTML='<div class="empty">Henüz fotoğraf seçilmedi.</div>';
+    return;
+  }
+  const landscape=orientationEl.value==='landscape';
+  pagesEl.style.gridTemplateColumns=images.length===1?'minmax(300px,600px)':'repeat(2,minmax(280px,1fr))';
+
+  images.forEach((item,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='page-wrap';
+    const label=document.createElement('div');
+    label.className='page-label';
+    label.textContent=`Sayfa ${i+1} — ${item.name}`;
+    const page=document.createElement('div');
+    page.className='page';
+    page.style.aspectRatio=landscape?'297/210':'210/297';
+
+    const img=document.createElement('img');
+    img.src=item.url;
+    img.style.left=marginEl.value+'mm';
+    img.style.right=marginEl.value+'mm';
+    img.style.top=marginEl.value+'mm';
+    img.style.bottom=marginEl.value+'mm';
+    img.style.maxWidth=`calc(100% - ${Number(marginEl.value)*2}mm)`;
+    img.style.maxHeight=`calc(100% - ${Number(marginEl.value)*2}mm)`;
+    img.style.objectFit=fitEl.value;
+    if(fitEl.value==='cover'){
+      img.style.width=`calc(100% - ${Number(marginEl.value)*2}mm)`;
+      img.style.height=`calc(100% - ${Number(marginEl.value)*2}mm)`;
+    }
+    page.appendChild(img);
+    wrap.append(label,page);
+    pagesEl.appendChild(wrap);
+  });
+  statusEl.textContent=`${images.length} fotoğraf hazır.`;
+}
+
+function printDocument(){
+  if(!images.length){alert('Önce fotoğraf seçin.');return;}
+  window.print();
+}
+
+document.getElementById('printBtn').addEventListener('click',printDocument);
+document.getElementById('pdfBtn').addEventListener('click',()=>{
+  if(!images.length){alert('Önce fotoğraf seçin.');return;}
+  alert('Yazdırma penceresinde yazıcı olarak “PDF olarak kaydet” veya “Microsoft Print to PDF” seçin.');
+  window.print();
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  images.forEach(x=>URL.revokeObjectURL(x.url));
+  images=[];
+  filesEl.value='';
+  statusEl.textContent='';
+  render();
+});
+</script>
+
+<style>
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body{background:#fff}
+  header,.panel:first-child,.panel>h3,.page-label,.status{display:none!important}
+  .container{margin:0;padding:0;max-width:none}
+  .panel{padding:0;margin:0;box-shadow:none}
+  #pages{display:block!important}
+  .page-wrap{display:block;page-break-after:always;width:100vw;height:100vh}
+  .page-wrap:last-child{page-break-after:auto}
+  .page{width:100vw;height:100vh;aspect-ratio:auto;box-shadow:none}
+  .page img{position:absolute}
+}
+</style>
+</body>
+</html>
